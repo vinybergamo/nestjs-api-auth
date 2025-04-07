@@ -3,8 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { InstanceModule } from './instance/instance.module';
-import { WapiModule } from './wapi/wapi.module';
 
 @Module({
   imports: [
@@ -21,8 +19,6 @@ import { WapiModule } from './wapi/wapi.module';
     DatabaseModule,
     UsersModule,
     AuthModule,
-    InstanceModule,
-    WapiModule,
   ],
 })
 export class AppModule {}
