@@ -10,6 +10,7 @@ import {
   All,
   Version,
   HttpCode,
+  UseInterceptors,
 } from '@nestjs/common';
 import { applyDecorators } from '@nestjs/common';
 import { IsPublic } from './is-public.decorator';
@@ -17,6 +18,7 @@ import { ApiExtraModels, ApiOperation } from '@nestjs/swagger';
 import { Cache } from './cache.decorator';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { milliseconds } from 'date-fns';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 
 const methodMappers = {
   GET: Get,
@@ -39,6 +41,7 @@ export function Endpoint(options: EndpointOptions) {
     documentation,
     cache,
     throttle,
+    file,
   } = options;
 
   const decorators = [methodMappers[method](path)];
@@ -57,12 +60,26 @@ export function Endpoint(options: EndpointOptions) {
     decorators.push(IsPublic());
   }
 
-  if (documentation) {
+  if (!!documentation) {
     createDocumentation(documentation, decorators);
   }
 
-  if (throttle) {
+  if (!!throttle) {
     createThrottle(throttle, decorators);
+  }
+
+  if (!!file) {
+    if (file.isMultiple) {
+      decorators.push(
+        UseInterceptors(
+          FilesInterceptor(file.fieldName, file.maxCount, file.options),
+        ),
+      );
+    } else {
+      decorators.push(
+        UseInterceptors(FileInterceptor(file.fieldName, file.options)),
+      );
+    }
   }
 
   return applyDecorators(...decorators);

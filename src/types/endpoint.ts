@@ -5,6 +5,7 @@ import {
   ThrottlerGenerateKeyFunction,
   ThrottlerGetTrackerFunction,
 } from '@nestjs/throttler';
+import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
 
 type Resolvable<T extends number | string | boolean> =
   | T
@@ -31,6 +32,12 @@ export interface EndpointOptions {
     ttl?: Duration;
     key?: string;
     disable?: boolean;
+  };
+  file?: {
+    fieldName: string;
+    maxCount?: number;
+    isMultiple?: boolean;
+    options?: MulterOptions;
   };
   throttle?: {
     skip?: Record<string, boolean> | boolean;
