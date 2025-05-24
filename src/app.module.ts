@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { CacheModule } from '@nestjs/cache-manager';
+import { milliseconds } from 'date-fns';
 
 @Module({
   imports: [
@@ -15,6 +17,10 @@ import { AuthModule } from './auth/auth.module';
         '.env.test',
         '.env.local',
       ],
+    }),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: milliseconds({ seconds: 30 }),
     }),
     DatabaseModule,
     UsersModule,

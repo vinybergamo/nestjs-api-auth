@@ -6,7 +6,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/users/entities/user.entity';
-import { set } from 'date-fns';
+import { millisecondsToSeconds, set } from 'date-fns';
 import ms from 'ms';
 import { UsersRepository } from 'src/users/users.repository';
 import { RegisterDto } from './dto/register.dto';
@@ -67,7 +67,7 @@ export class AuthService {
     const expiresIn = this.configService.get('JWT_EXPIRES_IN');
     const payload = { sub: user.id };
     const expiresMs = Number(ms(expiresIn));
-    const expiresInSeconds = expiresMs / 1000;
+    const expiresInSeconds = millisecondsToSeconds(expiresMs);
     const expiresAt = set(new Date(), { seconds: expiresInSeconds });
     const generatedAt = new Date();
     const generatedIn = generatedAt.getTime();
