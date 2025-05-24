@@ -5,6 +5,8 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { milliseconds } from 'date-fns';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -22,9 +24,23 @@ import { milliseconds } from 'date-fns';
       isGlobal: true,
       ttl: milliseconds({ seconds: 30 }),
     }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: milliseconds({ seconds: 60 }),
+          limit: 100,
+        },
+      ],
+    }),
     DatabaseModule,
     UsersModule,
     AuthModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

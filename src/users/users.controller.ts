@@ -14,6 +14,16 @@ export class UsersController {
     method: 'GET',
     path: 'me',
     statusCode: HttpStatusCode.Ok,
+    throttle: {
+      options: {
+        default: {
+          limit: 10,
+          ttl: {
+            days: 1,
+          },
+        },
+      },
+    },
     cache: {
       ttl: {
         minutes: 1,

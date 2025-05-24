@@ -15,6 +15,8 @@ import { applyDecorators } from '@nestjs/common';
 import { IsPublic } from './is-public.decorator';
 import { ApiExtraModels, ApiOperation } from '@nestjs/swagger';
 import { Cache } from './cache.decorator';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
+import { milliseconds } from 'date-fns';
 
 const methodMappers = {
   GET: Get,
@@ -28,8 +30,16 @@ const methodMappers = {
 };
 
 export function Endpoint(options: EndpointOptions) {
-  const { method, path, statusCode, version, isPublic, documentation, cache } =
-    options;
+  const {
+    method,
+    path,
+    statusCode,
+    version,
+    isPublic,
+    documentation,
+    cache,
+    throttle,
+  } = options;
 
   const decorators = [methodMappers[method](path)];
 
@@ -51,6 +61,10 @@ export function Endpoint(options: EndpointOptions) {
     createDocumentation(documentation, decorators);
   }
 
+  if (throttle) {
+    createThrottle(throttle, decorators);
+  }
+
   return applyDecorators(...decorators);
 }
 
@@ -64,6 +78,43 @@ function createDocumentation(
     }
     delete documentation.extraModels;
     decorators.push(ApiOperation(documentation));
+  }
+
+  return decorators;
+}
+
+function createThrottle(
+  throttle: EndpointOptions['throttle'],
+  decorators: MethodDecorator[],
+) {
+  if (throttle) {
+    if (throttle.options) {
+      const throttleOptions = { ...throttle.options };
+
+      for (const key in throttleOptions) {
+        const option: any = throttleOptions[key];
+
+        if (option.ttl) {
+          throttleOptions[key] = {
+            ...option,
+            ttl: milliseconds(option.ttl),
+          };
+        }
+      }
+
+      decorators.push(Throttle(throttleOptions as any));
+    }
+
+    if (throttle.skip) {
+      if (typeof throttle.skip === 'boolean') {
+        decorators.push(SkipThrottle());
+      } else if (
+        typeof throttle.skip === 'object' &&
+        Object.keys(throttle.skip).length > 0
+      ) {
+        decorators.push(SkipThrottle(throttle.skip));
+      }
+    }
   }
 
   return decorators;
