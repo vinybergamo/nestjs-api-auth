@@ -3,6 +3,8 @@ import { UsersService } from './users.service';
 import { Me } from '@/helpers/decorators/me.decorator';
 import { Endpoint } from '@/helpers/decorators/endpoint.decorator';
 import { HttpStatusCode } from 'axios';
+import { User } from './entities/user.entity';
+import { getSchemaPath } from '@nestjs/swagger';
 
 @Controller('users')
 export class UsersController {
@@ -20,6 +22,19 @@ export class UsersController {
           bearer: [],
         },
       ],
+      extraModels: [User],
+      responses: {
+        200: {
+          description: 'Current user information',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: getSchemaPath(User),
+              },
+            },
+          },
+        },
+      },
     },
   })
   async me(@Me() me: UserRequest) {

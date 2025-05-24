@@ -86,6 +86,9 @@ async function bootstrap() {
       type: 'http',
       name: 'bearer',
       scheme: 'bearer',
+      in: 'header',
+      bearerFormat: 'JWT',
+      'x-tokenName': 'Authorization',
     });
 
   const documentConfig = documentBuilder.build();
