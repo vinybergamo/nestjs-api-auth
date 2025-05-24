@@ -17,9 +17,9 @@ export class UsersController {
     throttle: {
       options: {
         default: {
-          limit: 10,
+          limit: 100,
           ttl: {
-            days: 1,
+            minutes: 1,
           },
         },
       },
