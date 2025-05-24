@@ -15,6 +15,7 @@ async function bootstrap() {
   const config = app.get(ConfigService);
   const port = config.get('PORT', 3333);
   const reflector = app.get(Reflector);
+  const appUrl = config.get<string | undefined>('APP_URL')?.split(/[,;]/);
 
   app.enableCors();
   app.setGlobalPrefix('api');
@@ -39,6 +40,17 @@ async function bootstrap() {
     .setTitle('NestJS API')
     .setDescription('API documentation')
     .setVersion('1.0')
+    .addServer(`http://localhost:${port}`, 'Local server');
+
+  if (appUrl && appUrl.length > 0) {
+    appUrl.forEach((url) => {
+      if (url && url.trim()) {
+        documentBuilder.addServer(url.trim());
+      }
+    });
+  }
+
+  documentBuilder
     .addGlobalResponse({
       status: 401,
       description: 'Unauthorized',
@@ -69,11 +81,11 @@ async function bootstrap() {
       type: 'http',
       name: 'bearer',
       scheme: 'bearer',
-    })
-    .build();
+    });
 
+  const documentConfig = documentBuilder.build();
   const documentFactory = () =>
-    SwaggerModule.createDocument(app, documentBuilder);
+    SwaggerModule.createDocument(app, documentConfig);
   SwaggerModule.setup('docs', app, documentFactory);
 
   await app.listen(port, () => {
