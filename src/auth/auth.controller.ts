@@ -23,7 +23,6 @@ export class AuthController {
     path: 'login',
     statusCode: HttpStatus.OK,
     isPublic: true,
-    version: '1',
   })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);

@@ -39,6 +39,37 @@ async function bootstrap() {
     .setTitle('NestJS API')
     .setDescription('API documentation')
     .setVersion('1.0')
+    .addGlobalResponse({
+      status: 401,
+      description: 'Unauthorized',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              statusCode: {
+                type: 'number',
+                default: 401,
+              },
+              message: {
+                type: 'string',
+                default: 'UNAUTHORIZED',
+              },
+              error: {
+                type: 'string',
+                default: 'Unauthorized',
+              },
+            },
+          },
+        },
+      },
+    })
+    .addBearerAuth({
+      description: 'JWT token',
+      type: 'http',
+      name: 'bearer',
+      scheme: 'bearer',
+    })
     .build();
 
   const documentFactory = () =>

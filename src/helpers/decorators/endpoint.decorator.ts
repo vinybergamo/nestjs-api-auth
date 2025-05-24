@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { applyDecorators } from '@nestjs/common';
 import { IsPublic } from './is-public.decorator';
+import { ApiOperation } from '@nestjs/swagger';
 
 const methodMappers = {
   GET: Get,
@@ -26,7 +27,8 @@ const methodMappers = {
 };
 
 export function Endpoint(options: EndpointOptions) {
-  const { method, path, statusCode, version, isPublic } = options;
+  const { method, path, statusCode, version, isPublic, documentation } =
+    options;
 
   const decorators = [methodMappers[method](path)];
   if (statusCode) {
@@ -41,5 +43,20 @@ export function Endpoint(options: EndpointOptions) {
     decorators.push(IsPublic());
   }
 
+  if (documentation) {
+    createDocumentation(documentation, decorators);
+  }
+
   return applyDecorators(...decorators);
+}
+
+function createDocumentation(
+  documentation: EndpointOptions['documentation'],
+  decorators: MethodDecorator[],
+) {
+  if (documentation) {
+    decorators.push(ApiOperation(documentation));
+  }
+
+  return decorators;
 }

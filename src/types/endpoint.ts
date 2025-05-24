@@ -1,4 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
+import { ApiOperationOptions } from '@nestjs/swagger';
 
 export interface EndpointOptions {
   method:
@@ -14,4 +15,5 @@ export interface EndpointOptions {
   statusCode?: number | HttpStatus;
   version?: string | string[];
   isPublic?: boolean;
+  documentation?: ApiOperationOptions;
 }
