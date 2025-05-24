@@ -1,73 +1,210 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# API de Autenticação com NestJS
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Descrição
+Projeto NestJS que provê uma API RESTful com autenticação JWT, CRUD de usuários e documentação automática via Swagger.
+Utiliza PostgreSQL (TypeORM) para persistência, configurações via `@nestjs/config`, DTOs com validação e cache HTTP.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Recursos
+- Registro de usuário (`/api/v1/auth/register`)
+- Login e emissão de JWT (`/api/v1/auth/login`)
+- Rotas protegidas por guardas de autenticação
+- CRUD completo de usuários (`/api/v1/users`)
+- Versionamento de API (prefixo `/api/v1`)
+- Documentação interativa Swagger (`/docs`)
+- Cache HTTP via decorator e interceptor
+- Validação de payloads com `class-validator`
 
-## Description
+## Pré-requisitos
+- Node.js ≥ 16
+- pnpm
+- PostgreSQL rodando e acessível
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Installation
-
+## Instalação
 ```bash
+# Clone o repositório
+$ git clone https://github.com/vinybergamo/nestjs-api-auth.git
+$ cd nestjs-api-auth
+
+# Instale dependências
 $ pnpm install
 ```
 
-## Running the app
-
+## Variáveis de Ambiente
+Copie o arquivo de exemplo e preencha as variáveis:
 ```bash
-# development
-$ pnpm run start
+$ cp .env.example .env
+```
+```env
+DATABASE_URL=postgres://user:senha@host:porta/banco
+JWT_SECRET=segredo_para_assinar_tokens
+JWT_EXPIRES_IN=1d        # ex: 3600s, 1d, 7d
+PORT=3333                # porta padrão
+APP_URL=http://meu-servidor  # (opcional) servidores adicionais no Swagger
+```
 
-# watch mode
+## Execução
+```bash
+# Modo desenvolvimento (com hot-reload)
 $ pnpm run start:dev
 
-# production mode
+# Produção
 $ pnpm run start:prod
 ```
 
-## Test
+## Documentação da API
+Após iniciar a aplicação, acesse:
+```
+http://localhost:<PORT>/docs
+```
+para explorar todos os endpoints e modelos via Swagger/OpenAPI.
 
+### Endpoints de Autenticação
+- `POST /api/v1/auth/register` — cria novo usuário
+- `POST /api/v1/auth/login`    — autentica e retorna token JWT
+
+### Endpoints de Usuário (protegidos)
+> Inclua header `Authorization: Bearer <token>`
+- `GET    /api/v1/users`         — lista usuários
+- `GET    /api/v1/users/:id`     — obtém usuário por ID
+- `POST   /api/v1/users`         — cria novo usuário
+- `PATCH  /api/v1/users/:id`     — atualiza usuário
+- `DELETE /api/v1/users/:id`     — remove usuário
+
+## Decorators Customizados
+
+Este projeto dispõe de _decorators_ que facilitam o uso de cache, definição de endpoints e extração do usuário autenticado.
+
+### 1. Cache
+Usa o interceptor `HttpCacheInterceptor` com TTL customizável.
+
+```ts
+import { Controller, Get } from '@nestjs/common';
+import { Cache } from '@/helpers/decorators/cache.decorator';
+
+@Controller('items')
+export class ItemsController {
+  // Cache de 60 segundos com chave customizada 'items_list'
+  @Get()
+  @Cache(60, 'items_list')
+  findAll() {
+    // ...
+  }
+
+  // Cache por duração de date-fns (ex.: 5 minutos)
+  @Get('top')
+  @Cache({ minutes: 5 })
+  findTopItems() {
+    // ...
+  }
+
+  // Desabilita cache
+  @Get('no-cache')
+  @Cache(undefined, undefined, true)
+  noCache() {
+    // ...
+  }
+}
+```
+
+### 2. Endpoint
+Unifica atributos de rota (método, status, versionamento, documentação, cache, _throttling_, upload de arquivos e público/privado).
+
+```ts
+import { Controller, Body, Param } from '@nestjs/common';
+import { Endpoint } from '@/helpers/decorators/endpoint.decorator';
+import { CreateUserDto } from '@/users/dto/create-user.dto';
+import { User } from '@/users/entities/user.entity';
+
+@Controller('users')
+export class UsersController {
+  @Endpoint({
+    method: 'POST',
+    path: '',
+    statusCode: 201,
+    documentation: {
+      summary: 'Cria um usuário',
+      description: 'Endpoint para registro de usuário',
+      extraModels: [User],
+    },
+    cache: { ttl: { seconds: 30 }, key: 'user_create' },
+    throttle: { options: { limit: 5, ttl: { minutes: 1 } } },
+    isPublic: true,
+  })
+  create(@Body() dto: CreateUserDto): Promise<User> {
+    // ...
+  }
+
+  @Endpoint({
+    method: 'GET',
+    path: ':id',
+    documentation: { summary: 'Busca usuário por ID' },
+    version: '1',
+  })
+  findOne(@Param('id') id: string): Promise<User> {
+    // ...
+  }
+}
+```
+
+### 3. IsPublic
+Marca rota como pública (não requer JWT).
+
+```ts
+import { Controller, Get } from '@nestjs/common';
+import { Endpoint } from '@/helpers/decorators/endpoint.decorator';
+
+@Controller('public')
+export class PublicController {
+  @Endpoint({
+    method: 'GET',
+    path: '',
+    isPublic: true,
+    documentation: { summary: 'Rota pública' }
+  })
+  getPublic() {
+    return { ok: true };
+  }
+}
+```
+
+### 4. Me
+Injeta o usuário autenticado extraído do JWT.
+
+```ts
+import { Controller, Get } from '@nestjs/common';
+import { Me } from '@/helpers/decorators/me.decorator';
+import { User } from '@/users/entities/user.entity';
+
+@Controller('profile')
+export class ProfileController {
+  @Get()
+  getProfile(@Me() user: User) {
+    // `user` já é o objeto do payload JWT
+    return user;
+  }
+}
+```
+
+## Testes
 ```bash
-# unit tests
+# Testes unitários
 $ pnpm run test
 
-# e2e tests
+# Testes end-to-end
 $ pnpm run test:e2e
 
-# test coverage
+# Cobertura de testes
 $ pnpm run test:cov
 ```
 
-## Support
+## Ferramentas e Tecnologias
+- NestJS
+- TypeScript
+- TypeORM + PostgreSQL
+- JWT (`@nestjs/jwt`)
+- Swagger / OpenAPI
+- class-validator & class-transformer
+- pnpm, ESLint, Prettier
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+## Licença
+Este projeto está licenciado sob a licença MIT.
