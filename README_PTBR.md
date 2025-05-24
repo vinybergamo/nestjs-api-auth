@@ -1,91 +1,92 @@
-# Authentication API with NestJS
+# API de Autenticação com NestJS
 
-## Description
+## Descrição
 
-NestJS project providing a RESTful API with JWT authentication, user CRUD and automatic Swagger documentation. Uses PostgreSQL (TypeORM) for persistence, configuration via `@nestjs/config`, DTOs with validation and HTTP caching.
+Projeto NestJS que provê uma API RESTful com autenticação JWT, CRUD de usuários e documentação automática via Swagger.
+Utiliza PostgreSQL (TypeORM) para persistência, configurações via `@nestjs/config`, DTOs com validação e cache HTTP.
 
-## Features
+## Recursos
 
-- User registration (`/api/v1/auth/register`)
-- Login and JWT issuance (`/api/v1/auth/login`)
-- Protected routes with authentication guards
-- Returns the logged-in user (`/api/v1/users/me`)
-- API versioning (prefix `/api/v1`)
-- Interactive Swagger documentation (`/docs`)
-- HTTP caching via decorator and interceptor
-- Payload validation using `class-validator`
+- Registro de usuário (`/api/v1/auth/register`)
+- Login e emissão de JWT (`/api/v1/auth/login`)
+- Rotas protegidas por guardas de autenticação
+- Retorna o usuário logado (`/api/v1/users/me`)
+- Versionamento de API (prefixo `/api/v1`)
+- Documentação interativa Swagger (`/docs`)
+- Cache HTTP via decorator e interceptor
+- Validação de payloads com `class-validator`
 
-## Prerequisites
+## Pré-requisitos
 
 - Node.js ≥ 18
 - pnpm
-- Running and accessible PostgreSQL database
+- PostgreSQL rodando e acessível
 
-## Installation
+## Instalação
 
 ```bash
-# Clone the repository
+# Clone o repositório
 $ git clone https://github.com/vinybergamo/nestjs-api-auth.git
 $ cd nestjs-api-auth
 
-# Install dependencies
+# Instale dependências
 $ pnpm install
 ```
 
-## Environment Variables
+## Variáveis de Ambiente
 
-Copy the example file and fill in your variables:
+Copie o arquivo de exemplo e preencha as variáveis:
 
 ```bash
 $ cp .env.example .env
 ```
 
 ```env
-DATABASE_URL=postgres://user:password@host:port/dbname
-JWT_SECRET=secret_for_signing_tokens
-JWT_EXPIRES_IN=1d        # e.g. 3600s, 1d, 7d
-PORT=3333                # default port
-APP_URL=http://my-server # (optional) extra servers in Swagger
+DATABASE_URL=postgres://user:senha@host:porta/banco
+JWT_SECRET=segredo_para_assinar_tokens
+JWT_EXPIRES_IN=1d        # ex: 3600s, 1d, 7d
+PORT=3333                # porta padrão
+APP_URL=http://meu-servidor  # (opcional) servidores adicionais no Swagger
 ```
 
-## Running the App
+## Execução
 
 ```bash
-# Development mode (hot-reload)
+# Modo desenvolvimento (com hot-reload)
 $ pnpm run start:dev
 
-# Production mode
+# Produção
 $ pnpm run start:prod
 ```
 
-## API Documentation
+## Documentação da API
 
-After starting the application, visit:
+Após iniciar a aplicação, acesse:
 
 ```
 http://localhost:<PORT>/docs
 ```
 
-to explore all endpoints and schemas via Swagger / OpenAPI.
+para explorar todos os endpoints e modelos via Swagger/OpenAPI.
 
-### Authentication Endpoints
+### Endpoints de Autenticação
 
-- `POST /api/v1/auth/register` — create a new user and return a JWT
-- `POST /api/v1/auth/login`    — authenticate and return a JWT
+- `POST /api/v1/auth/register` — cria novo usuário e retorna o token JWT
+- `POST /api/v1/auth/login` — autentica e retorna token JWT
 
-### User Endpoints (protected)
+### Endpoints de Usuário (protegidos)
 
-> Include header `Authorization: Bearer <token>`
+> Inclua header `Authorization: Bearer <token>`
 
-- `GET /api/v1/users/me` — return the user based on the JWT
+- `GET    /api/v1/me` — retorna o usuário com base no JWT
 
-## Custom Decorators
+## Decorators Customizados
 
-The project provides decorators to simplify cache usage, endpoint definition, and authenticated-user extraction.
+Este projeto dispõe de _decorators_ que facilitam o uso de cache, definição de endpoints e extração do usuário autenticado.
 
 ### 1. Cache
 
-Uses the `HttpCacheInterceptor` with a customizable TTL.
+Usa o interceptor `HttpCacheInterceptor` com TTL customizável.
 
 ```ts
 import { Controller, Get } from '@nestjs/common';
@@ -93,21 +94,21 @@ import { Cache } from '@/helpers/decorators/cache.decorator';
 
 @Controller('items')
 export class ItemsController {
-  // Cache for 60 seconds with custom key 'items_list'
+  // Cache de 60 segundos com chave customizada 'items_list'
   @Get()
   @Cache(60000, 'items_list')
   findAll() {
     // ...
   }
 
-  // Cache with date-fns duration (e.g. 5 minutes)
+  // Cache por duração de date-fns (ex.: 5 minutos)
   @Get('top')
   @Cache({ minutes: 5 })
   findTopItems() {
     // ...
   }
 
-  // Disable cache
+  // Desabilita cache
   @Get('no-cache')
   @Cache(undefined, undefined, true)
   noCache() {
@@ -118,7 +119,7 @@ export class ItemsController {
 
 ### 2. Endpoint
 
-Unifies route attributes (method, status, versioning, documentation, cache, throttling, file uploads, and public/private).
+Unifica atributos de rota (método, status, versionamento, documentação, cache, _throttling_, upload de arquivos e público/privado).
 
 ```ts
 import { Controller, Body, Param } from '@nestjs/common';
@@ -133,8 +134,8 @@ export class UsersController {
     path: '',
     statusCode: 201,
     documentation: {
-      summary: 'Create a user',
-      description: 'Endpoint to register a new user',
+      summary: 'Cria um usuário',
+      description: 'Endpoint para registro de usuário',
       extraModels: [User],
     },
     cache: { ttl: { seconds: 30 }, key: 'user_create' },
@@ -148,7 +149,7 @@ export class UsersController {
   @Endpoint({
     method: 'GET',
     path: ':id',
-    documentation: { summary: 'Find user by ID' },
+    documentation: { summary: 'Busca usuário por ID' },
     version: '1',
   })
   findOne(@Param('id') id: string): Promise<User> {
@@ -159,7 +160,7 @@ export class UsersController {
 
 ### 3. IsPublic
 
-Marks a route as public (no JWT required).
+Marca rota como pública (não requer JWT).
 
 ```ts
 import { Controller, Get } from '@nestjs/common';
@@ -171,7 +172,7 @@ export class PublicController {
     method: 'GET',
     path: '',
     isPublic: true,
-    documentation: { summary: 'Public route' },
+    documentation: { summary: 'Rota pública' },
   })
   getPublic() {
     return { ok: true };
@@ -181,7 +182,7 @@ export class PublicController {
 
 ### 4. Me
 
-Injects the authenticated user extracted from the JWT.
+Injeta o usuário autenticado extraído do JWT.
 
 ```ts
 import { Controller } from '@nestjs/common';
@@ -204,48 +205,60 @@ export class UsersController {
       options: {
         default: {
           limit: 100,
-          ttl: { minutes: 1 },
+          ttl: {
+            minutes: 1,
+          },
         },
       },
     },
-    cache: { ttl: { minutes: 1 } },
+    cache: {
+      ttl: {
+        minutes: 1,
+      },
+    },
     documentation: {
       summary: 'Get current user',
       description: 'Get current user information',
-      security: [{ bearer: [] }],
+      security: [
+        {
+          bearer: [],
+        },
+      ],
       extraModels: [User],
       responses: {
         200: {
           description: 'Current user information',
           content: {
             'application/json': {
-              schema: { $ref: getSchemaPath(User) },
+              schema: {
+                $ref: getSchemaPath(User),
+              },
             },
           },
         },
       },
     },
   })
-  async me(@Me() me: { id: string }) {
+  async me(@Me() me: UserRequest) {
     return this.usersService.me(me.id);
   }
 }
 ```
 
-## Tests
+## Testes
 
 ```bash
-# Unit tests
+# Testes unitários
 $ pnpm run test
 
-# End-to-end tests
+# Testes end-to-end
 $ pnpm run test:e2e
 
-# Test coverage
+# Cobertura de testes
 $ pnpm run test:cov
 ```
 
-## Tools & Technologies
+## Ferramentas e Tecnologias
 
 - NestJS
 - TypeScript
@@ -255,6 +268,6 @@ $ pnpm run test:cov
 - class-validator & class-transformer
 - pnpm, ESLint, Prettier
 
-## License
+## Licença
 
-This project is licensed under the MIT License.
+Este projeto está licenciado sob a licença MIT.
