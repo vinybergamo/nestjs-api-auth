@@ -7,6 +7,7 @@ import {
   ValidationPipe,
   VersioningType,
 } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -33,6 +34,16 @@ async function bootstrap() {
       excludePrefixes: ['_'],
     }),
   );
+
+  const documentBuilder = new DocumentBuilder()
+    .setTitle('NestJS API')
+    .setDescription('API documentation')
+    .setVersion('1.0')
+    .build();
+
+  const documentFactory = () =>
+    SwaggerModule.createDocument(app, documentBuilder);
+  SwaggerModule.setup('docs', app, documentFactory);
 
   await app.listen(port, () => {
     logger.log(`Server listening on port ${port}`);
