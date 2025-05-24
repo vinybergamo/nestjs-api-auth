@@ -14,6 +14,11 @@ export class UsersController {
     method: 'GET',
     path: 'me',
     statusCode: HttpStatusCode.Ok,
+    cache: {
+      ttl: {
+        minutes: 1,
+      },
+    },
     documentation: {
       summary: 'Get current user',
       description: 'Get current user information',

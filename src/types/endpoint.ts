@@ -1,5 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
 import { ApiOperationOptions } from '@nestjs/swagger';
+import { Duration } from 'date-fns';
 
 export interface EndpointOptions {
   method:
@@ -17,5 +18,10 @@ export interface EndpointOptions {
   isPublic?: boolean;
   documentation?: ApiOperationOptions & {
     extraModels?: any[];
+  };
+  cache?: {
+    ttl?: Duration;
+    key?: string;
+    disable?: boolean;
   };
 }

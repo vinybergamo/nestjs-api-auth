@@ -14,6 +14,7 @@ import {
 import { applyDecorators } from '@nestjs/common';
 import { IsPublic } from './is-public.decorator';
 import { ApiExtraModels, ApiOperation } from '@nestjs/swagger';
+import { Cache } from './cache.decorator';
 
 const methodMappers = {
   GET: Get,
@@ -27,10 +28,13 @@ const methodMappers = {
 };
 
 export function Endpoint(options: EndpointOptions) {
-  const { method, path, statusCode, version, isPublic, documentation } =
+  const { method, path, statusCode, version, isPublic, documentation, cache } =
     options;
 
   const decorators = [methodMappers[method](path)];
+
+  decorators.push(Cache(cache?.ttl, cache?.key, cache?.disable));
+
   if (statusCode) {
     decorators.push(HttpCode(statusCode));
   }

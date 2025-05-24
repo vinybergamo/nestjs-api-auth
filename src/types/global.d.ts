@@ -5,4 +5,10 @@ export {};
 declare global {
   type Id = string | number;
   type UserRequest = User;
+
+  declare namespace Express {
+    export interface Request {
+      user: UserRequest;
+    }
+  }
 }
