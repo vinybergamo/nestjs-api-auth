@@ -15,5 +15,7 @@ export interface EndpointOptions {
   statusCode?: number | HttpStatus;
   version?: string | string[];
   isPublic?: boolean;
-  documentation?: ApiOperationOptions;
+  documentation?: ApiOperationOptions & {
+    extraModels?: any[];
+  };
 }

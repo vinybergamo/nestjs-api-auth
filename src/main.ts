@@ -40,6 +40,11 @@ async function bootstrap() {
     .setTitle('NestJS API')
     .setDescription('API documentation')
     .setVersion('1.0')
+    .setContact(
+      'Vinycios Cavalcante Bergamo',
+      'vinybergamo.cmo',
+      'contato@vinybergamo.com',
+    )
     .addServer(`http://localhost:${port}`, 'Local server');
 
   if (appUrl && appUrl.length > 0) {

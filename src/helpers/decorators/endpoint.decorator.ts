@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { applyDecorators } from '@nestjs/common';
 import { IsPublic } from './is-public.decorator';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiExtraModels, ApiOperation } from '@nestjs/swagger';
 
 const methodMappers = {
   GET: Get,
@@ -55,6 +55,10 @@ function createDocumentation(
   decorators: MethodDecorator[],
 ) {
   if (documentation) {
+    if (documentation.extraModels) {
+      decorators.push(ApiExtraModels(...documentation.extraModels));
+    }
+    delete documentation.extraModels;
     decorators.push(ApiOperation(documentation));
   }
 
