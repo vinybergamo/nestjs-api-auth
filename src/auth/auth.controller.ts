@@ -19,7 +19,6 @@ export class AuthController {
     documentation: {
       summary: 'Register',
       description: 'Register a new user',
-      security: [],
       extraModels: [Token],
       responses: {
         201: {
@@ -55,7 +54,6 @@ export class AuthController {
     documentation: {
       summary: 'Login',
       description: 'Login to the application',
-      security: [],
       responses: {
         200: {
           description: 'Login successful',
