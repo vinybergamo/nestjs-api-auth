@@ -94,7 +94,10 @@ async function bootstrap() {
   const documentConfig = documentBuilder.build();
   const documentFactory = () =>
     SwaggerModule.createDocument(app, documentConfig);
-  SwaggerModule.setup('docs', app, documentFactory);
+  SwaggerModule.setup('docs', app, documentFactory, {
+    raw: true,
+    explorer: true,
+  });
 
   await app.listen(port, () => {
     logger.log(`Server listening on port ${port}`);
