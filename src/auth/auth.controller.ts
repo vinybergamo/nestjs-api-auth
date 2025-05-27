@@ -16,6 +16,16 @@ export class AuthController {
     path: 'register',
     statusCode: HttpStatus.CREATED,
     isPublic: true,
+    throttle: {
+      options: {
+        default: {
+          limit: 5,
+          ttl: {
+            seconds: 60,
+          },
+        },
+      },
+    },
     documentation: {
       summary: 'Register',
       description: 'Register a new user',
