@@ -61,6 +61,16 @@ export class AuthController {
     path: 'login',
     statusCode: HttpStatus.OK,
     isPublic: true,
+    throttle: {
+      options: {
+        default: {
+          limit: 5,
+          ttl: {
+            seconds: 60,
+          },
+        },
+      },
+    },
     documentation: {
       summary: 'Login',
       description: 'Login to the application',
